@@ -99,9 +99,9 @@ describe('ink consumes every dot the line touches', () => {
     expect(after.trail).toEqual([{ from: { gx: 0, gy: 0 }, to: { gx: 3, gy: 0 } }]);
   });
 
-  it('blocks a later line that would reuse one of those dots', () => {
+  it('refuses to let anything stop on one of those dots again', () => {
     const back = withHand(after, [2]);
-    // (1,0) and (2,0) are spent, so travelling left is dead in that direction
+    // (1,0) is spent, so a 2 travelling left has nowhere to land
     expect(legalMoves(back, 2).some((m) => m.dir.gx === -1 && m.dir.gy === 0)).toBe(false);
   });
 
@@ -129,10 +129,15 @@ describe('lines are not walls — only dots are consumed', () => {
     expect(playCard(crosser, 0, { gx: 6, gy: 3 })).not.toBeNull();
   });
 
-  it('still refuses a line that lands on or passes through a used dot', () => {
-    // straight down from (5,3) would pass through (5,5), which the old line spent
-    const onto = withHand({ ...inked, ball: { gx: 5, gy: 3 } }, [3]);
-    expect(legalMoves(onto, 3).some((m) => m.dir.gx === 0 && m.dir.gy === 1)).toBe(false);
+  it('flies over a used dot but refuses to stop on one', () => {
+    const over = withHand({ ...inked, ball: { gx: 5, gy: 3 } }, [3]);
+    // (5,3) → (5,6) passes through (5,5), which the old line spent. Allowed:
+    // ink does not block flight, and the landing dot (5,6) is free.
+    expect(legalMoves(over, 3).some((m) => m.dir.gx === 0 && m.dir.gy === 1)).toBe(true);
+
+    // (5,3) → (5,5) would come to rest on that spent dot. Refused.
+    const onto = withHand({ ...inked, ball: { gx: 5, gy: 3 } }, [2]);
+    expect(legalMoves(onto, 2).some((m) => m.dir.gx === 0 && m.dir.gy === 1)).toBe(false);
   });
 });
 

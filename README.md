@@ -12,10 +12,11 @@ Vite + TypeScript + PixiJS. Cloned from `reboot-prototype-starter`.
 - A card's number is a **distance in steps**. A diagonal step counts the same as a
   straight one, so a `3` reaches any of the (up to) eight dots three steps away.
 - Playing a card **spends every dot the line touches** — the landing dot and each dot
-  flown over. Spent dots can never be landed on or crossed again. Lines may cross each
-  other in open space; it's the dots that run out, not the geometry.
+  flown over. A spent dot can never be **landed on** again, but lines fly over each
+  other freely: ink occupies dots, it is not a wall. What runs out is places to stop.
 - The **hole is solid**. A line may end on it (you win) but never pass over it.
-- Blocked dots are placed by the level and behave like permanently spent dots.
+- Blocked dots are placed by the level. Unlike ink these are solid — they stop a line
+  mid-flight, the same way the hole does.
 - **par** is the stroke count to beat. **cards** is the size of the pool the level
   deals from — run it dry without sinking and you lose.
 - Every deal is checked against the live board, so a hand never arrives with nothing
@@ -23,11 +24,15 @@ Vite + TypeScript + PixiJS. Cloned from `reboot-prototype-starter`.
   cards come out of the pool.
 - If every dot around the ball is dead you're **boxed in** — that loss is self-inflicted.
 
-## Reach shrinks from the outside in
+## What closes the board
 
-Obstruction is per-ray: only the *nearest* blocker on a line matters. So as the board
-fills, high cards die before low ones, and `1` stays playable right up until the ball
-is completely walled in.
+Only level obstacles and the hole block flight, so you can always travel — what you
+lose is somewhere to land. As ink accumulates, a card is dead when all eight dots at
+its exact distance are already spent, which hits big numbers and small ones alike.
+
+Being **boxed in** (no distance has a free landing anywhere) is still a loss condition,
+but under this rule it is close to unreachable in practice; losses are almost entirely
+running the card pool dry.
 
 ## Layout
 

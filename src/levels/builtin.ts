@@ -5,8 +5,9 @@ import { parseMap } from './golfLevel';
 // 16 columns × 20 rows.  O = ball   H = hole   # = blocked dot   . = open dot
 //
 // `par` is the stroke count to beat — the golf score. `cards` is the size of the
-// pool the level deals from, and running it dry is how you lose. Run `npm test`
-// after editing a map: the solver plays every level and fails if it can't finish.
+// pool the level deals from, and running it dry is how you lose. Both are tuned
+// against the solver in tests/levels.test.ts, which plays each level 60 times
+// from different deals and fails the build if it can't finish reliably.
 
 function level(
   id: string, name: string, par: number, cards: number, map: readonly string[],
@@ -37,7 +38,7 @@ const l1 = level('g1-first-putt', 'First Putt', 3, 10, [
   '................',
 ]);
 
-const l2 = level('g2-open-range', 'Open Range', 6, 16, [
+const l2 = level('g2-open-range', 'Open Range', 6, 12, [
   '................',
   '................',
   '................',
@@ -60,7 +61,7 @@ const l2 = level('g2-open-range', 'Open Range', 6, 16, [
   '................',
 ]);
 
-const l3 = level('g3-long-way', 'The Long Way', 7, 20, [
+const l3 = level('g3-long-way', 'The Long Way', 7, 12, [
   '................',
   '..............H.',
   '................',
@@ -83,7 +84,7 @@ const l3 = level('g3-long-way', 'The Long Way', 7, 20, [
   '................',
 ]);
 
-const l4 = level('g4-the-fence', 'The Fence', 7, 20, [
+const l4 = level('g4-the-fence', 'The Fence', 7, 10, [
   '................',
   '................',
   '.......H........',
@@ -106,7 +107,7 @@ const l4 = level('g4-the-fence', 'The Fence', 7, 20, [
   '................',
 ]);
 
-const l5 = level('g5-pillars', 'Pillars', 7, 20, [
+const l5 = level('g5-pillars', 'Pillars', 8, 14, [
   '................',
   '................',
   '................',
@@ -129,7 +130,7 @@ const l5 = level('g5-pillars', 'Pillars', 7, 20, [
   '................',
 ]);
 
-const l6 = level('g6-the-pocket', 'The Pocket', 8, 22, [
+const l6 = level('g6-the-pocket', 'The Pocket', 8, 12, [
   '................',
   '................',
   '.......###......',

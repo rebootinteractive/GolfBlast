@@ -19,7 +19,10 @@ export interface GolfState {
   readonly hole: Cell;
   /** Dots blocked by the level author. Never changes during play. */
   readonly blocked: ReadonlySet<number>;
-  /** Dots consumed by ink — landed on or flown over. Grows every move. */
+  /**
+   * Dots consumed by ink — landed on or flown over. Grows every move. A spent
+   * dot can never be landed on again, but lines may still fly over it.
+   */
   readonly spent: ReadonlySet<number>;
   readonly hand: readonly number[];
   /** Cards still undealt in the pool. */
@@ -87,15 +90,20 @@ export function seedFrom(text: string): number {
 
 // ─── queries ─────────────────────────────────────────────────────────────────
 
-/** A dot the ball may fly over: on the board, unspent, unblocked, not the hole. */
-function isPassable(state: GolfState, c: Cell): boolean {
+/**
+ * A dot the ball may fly over. Ink never blocks flight — lines cross each other
+ * freely. Only the level's own obstacles and the hole stop a line mid-air.
+ */
+function isCrossable(state: GolfState, c: Cell): boolean {
   if (!inBounds(c.gx, c.gy)) return false;
-  const k = key(c.gx, c.gy);
-  if (state.blocked.has(k) || state.spent.has(k)) return false;
+  if (state.blocked.has(key(c.gx, c.gy))) return false;
   return !sameCell(c, state.hole);
 }
 
-/** A dot the ball may come to rest on. The hole always qualifies. */
+/**
+ * A dot the ball may come to rest on. This is what ink takes away: every dot a
+ * line touches is occupied afterwards, so nothing can stop there again.
+ */
 function isLandable(state: GolfState, c: Cell): boolean {
   if (!inBounds(c.gx, c.gy)) return false;
   if (sameCell(c, state.hole)) return true;
@@ -111,7 +119,7 @@ export function legalMoves(state: GolfState, distance: number): Move[] {
     const path = pathCells(state.ball, dir, distance);
     if (!path) continue;
     const target = path[path.length - 1];
-    const clear = path.every((c, i) => (i === path.length - 1 ? isLandable(state, c) : isPassable(state, c)));
+    const clear = path.every((c, i) => (i === path.length - 1 ? isLandable(state, c) : isCrossable(state, c)));
     if (!clear) continue;
     moves.push({ distance, dir, path, target, sinks: sameCell(target, state.hole) });
   }
