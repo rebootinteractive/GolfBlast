@@ -22,7 +22,8 @@ Vite + TypeScript + PixiJS. Cloned from `reboot-prototype-starter`.
 - Every deal is checked against the live board, so a hand never arrives with nothing
   playable. A hand that goes dead mid-play is discarded and replaced, and the lost
   cards come out of the pool.
-- If every dot around the ball is dead you're **boxed in** — that loss is self-inflicted.
+- If no distance has a free landing anywhere you're **boxed in**. See below — this is
+  now rare.
 
 ## What closes the board
 
