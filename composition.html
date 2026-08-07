@@ -1,0 +1,100 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>Composition — golfblast</title>
+<body style="margin:0;background:#2a2620;display:grid;place-items:center;min-height:100vh;font-family:system-ui">
+  <figure style="text-align:center;color:#e8e2d5;margin:24px">
+    <svg width="393" height="852" viewBox="0 0 393 852" style="background:#f3eee3;border-radius:36px">
+      <!-- header -->
+      <text x="196" y="48" fill="#3a3428" text-anchor="middle" font-size="20" font-weight="700">Level name</text>
+
+      <!-- board: 16 × 20 dots, 24px apart, 16.5px side margin -->
+      <g id="dots" fill="#9b9282"></g>
+      <rect x="4.5" y="84" width="384" height="480" fill="none" stroke="#2f7ed0" stroke-dasharray="5" opacity=".5" />
+      <text x="196" y="580" fill="#8d8676" text-anchor="middle" font-size="13">
+        BOARD — 16 × 20 dots · 24px spacing · top 96 · bottom 552
+      </text>
+
+      <!-- status line -->
+      <text x="196" y="600" fill="#8d8676" text-anchor="middle" font-size="15" font-weight="600">
+        14 cards left · par 6 · strokes 3
+      </text>
+
+      <!-- hand -->
+      <g>
+        <rect x="38" y="614" width="96" height="118" rx="14" fill="#fff" stroke="#d9d1c1" stroke-width="2" />
+        <text x="86" y="686" fill="#27406b" text-anchor="middle" font-size="46" font-weight="800">5</text>
+        <text x="86" y="706" fill="#8d8676" text-anchor="middle" font-size="12" font-weight="600">steps</text>
+
+        <rect x="148" y="614" width="96" height="118" rx="14" fill="#e8f0fb" stroke="#2f7ed0" stroke-width="3" />
+        <text x="196" y="686" fill="#27406b" text-anchor="middle" font-size="46" font-weight="800">3</text>
+        <text x="196" y="706" fill="#8d8676" text-anchor="middle" font-size="12" font-weight="600">steps</text>
+
+        <rect x="258" y="614" width="96" height="118" rx="14" fill="#fff" stroke="#d9d1c1" stroke-width="2" opacity=".35" />
+        <text x="306" y="686" fill="#27406b" text-anchor="middle" font-size="46" font-weight="800" opacity=".35">8</text>
+        <text x="306" y="706" fill="#8d8676" text-anchor="middle" font-size="12" font-weight="600" opacity=".35">steps</text>
+      </g>
+      <text x="196" y="752" fill="#8d8676" text-anchor="middle" font-size="12">
+        HAND — selected card is outlined · unplayable card is dimmed
+      </text>
+
+      <!-- chrome -->
+      <text x="196" y="800" fill="#8d8676" text-anchor="middle" font-size="13">← Menu · ↶ Undo · ⟲ Retry</text>
+    </svg>
+    <figcaption style="margin-top:12px;font-size:13px;max-width:393px;line-height:1.5">
+      golfblast — locked stage. The board is a fixed 16×20 lattice; levels only choose
+      where the ball, hole and blocked dots sit within it.
+    </figcaption>
+  </figure>
+
+  <script>
+    // Draw the lattice so the mockup matches src/game/layout.ts exactly.
+    const COLS = 16, ROWS = 20, SPACING = 24, LEFT = Math.round((393 - (COLS - 1) * SPACING) / 2), TOP = 96;
+    const g = document.getElementById('dots');
+    const ns = 'http://www.w3.org/2000/svg';
+    const mark = (gx, gy, r, fill) => {
+      const c = document.createElementNS(ns, 'circle');
+      c.setAttribute('cx', LEFT + gx * SPACING);
+      c.setAttribute('cy', TOP + gy * SPACING);
+      c.setAttribute('r', r);
+      c.setAttribute('fill', fill);
+      g.appendChild(c);
+    };
+    for (let gy = 0; gy < ROWS; gy++) for (let gx = 0; gx < COLS; gx++) mark(gx, gy, 3.2, '#9b9282');
+
+    // A sample position: two inked moves, spent dots faded, ball red, hole green.
+    const ink = [[[3, 15], [3, 11]], [[3, 11], [7, 7]]];
+    for (const [[x0, y0], [x1, y1]] of ink) {
+      const l = document.createElementNS(ns, 'line');
+      l.setAttribute('x1', LEFT + x0 * SPACING); l.setAttribute('y1', TOP + y0 * SPACING);
+      l.setAttribute('x2', LEFT + x1 * SPACING); l.setAttribute('y2', TOP + y1 * SPACING);
+      l.setAttribute('stroke', '#27406b'); l.setAttribute('stroke-width', '3'); l.setAttribute('stroke-linecap', 'round');
+      g.appendChild(l);
+      const steps = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
+      const sx = Math.sign(x1 - x0), sy = Math.sign(y1 - y0);
+      for (let i = 0; i <= steps; i++) mark(x0 + sx * i, y0 + sy * i, 2.2, '#dbd4c6');
+    }
+    mark(7, 7, 7, '#d6402c');                                   // ball
+    const hole = document.createElementNS(ns, 'circle');
+    hole.setAttribute('cx', LEFT + 11 * SPACING); hole.setAttribute('cy', TOP + 3 * SPACING);
+    hole.setAttribute('r', 10); hole.setAttribute('fill', 'none');
+    hole.setAttribute('stroke', '#1d7a4c'); hole.setAttribute('stroke-width', '2.5');
+    g.appendChild(hole);
+    mark(11, 3, 5, '#1d7a4c');
+    for (const [gx, gy] of [[9, 10], [10, 10], [9, 11], [10, 11]]) {  // blocked dots
+      const r = document.createElementNS(ns, 'rect');
+      r.setAttribute('x', LEFT + gx * SPACING - 6.5); r.setAttribute('y', TOP + gy * SPACING - 6.5);
+      r.setAttribute('width', 13); r.setAttribute('height', 13); r.setAttribute('rx', 3);
+      r.setAttribute('fill', '#6f6455');
+      r.setAttribute('transform', `rotate(45 ${LEFT + gx * SPACING} ${TOP + gy * SPACING})`);
+      g.appendChild(r);
+    }
+    // highlighted landings for the selected 3-card
+    for (const [gx, gy] of [[10, 4], [10, 7], [7, 4], [4, 4], [4, 7], [4, 10], [7, 10]]) {
+      const c = document.createElementNS(ns, 'circle');
+      c.setAttribute('cx', LEFT + gx * SPACING); c.setAttribute('cy', TOP + gy * SPACING);
+      c.setAttribute('r', 9); c.setAttribute('fill', 'none');
+      c.setAttribute('stroke', '#2f7ed0'); c.setAttribute('stroke-width', '2.5');
+      g.appendChild(c);
+    }
+  </script>
+</body>
