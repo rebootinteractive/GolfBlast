@@ -99,7 +99,7 @@ describe('ink consumes every dot the line touches', () => {
     expect(after.trail).toEqual([{ from: { gx: 0, gy: 0 }, to: { gx: 3, gy: 0 } }]);
   });
 
-  it('refuses to cross its own ink later', () => {
+  it('blocks a later line that would reuse one of those dots', () => {
     const back = withHand(after, [2]);
     // (1,0) and (2,0) are spent, so travelling left is dead in that direction
     expect(legalMoves(back, 2).some((m) => m.dir.gx === -1 && m.dir.gy === 0)).toBe(false);
@@ -109,6 +109,30 @@ describe('ink consumes every dot the line touches', () => {
     expect(start.spent.size).toBe(1);
     expect(start.ball).toEqual({ gx: 0, gy: 0 });
     expect(start.trail).toHaveLength(0);
+  });
+});
+
+describe('lines are not walls — only dots are consumed', () => {
+  // Ink a down-right diagonal (4,4) → (6,6), touching (4,4) (5,5) (6,6).
+  const inked = playCard(
+    withHand(createGame(setup({ ball: { gx: 4, gy: 4 } }), SEED), [2]),
+    0, { gx: 6, gy: 6 },
+  )!;
+
+  it('lets an opposite diagonal cross it between the dots', () => {
+    // (4,5) → (6,3) crosses the old line at (4.5, 4.5) — no dot there, so it is
+    // legal. This is the one case where two lines meet off-lattice, and it is
+    // exactly what would be forbidden if ink were a wall.
+    const crosser = withHand({ ...inked, ball: { gx: 4, gy: 5 } }, [2]);
+    const move = legalMoves(crosser, 2).find((m) => m.dir.gx === 1 && m.dir.gy === -1);
+    expect(move?.target).toEqual({ gx: 6, gy: 3 });
+    expect(playCard(crosser, 0, { gx: 6, gy: 3 })).not.toBeNull();
+  });
+
+  it('still refuses a line that lands on or passes through a used dot', () => {
+    // straight down from (5,3) would pass through (5,5), which the old line spent
+    const onto = withHand({ ...inked, ball: { gx: 5, gy: 3 } }, [3]);
+    expect(legalMoves(onto, 3).some((m) => m.dir.gx === 0 && m.dir.gy === 1)).toBe(false);
   });
 });
 
